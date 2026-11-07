@@ -25,20 +25,27 @@ Note: the `$lib` alias only exists inside Vite. Worker entrypoints should use re
 
 ```
 src/
-  routes/                 # pages, +page.server.ts (load + form actions), +server.ts endpoints
+  components/             # UI (Svelte + Tailwind)
+    site/
+    layout/
+    ui/
+  routes/                 # pages, +page.server.ts (load + form actions), +server.ts
   lib/
-    components/           # UI (Svelte + Tailwind)
     schemas/              # zod schemas shared by server layer and workers
     server/               # server-only code ($lib/server)
       config.ts           # env access (no $env imports, so workers can use it)
-      services/
-        profile.service.ts
-        repo-computation.service.ts
-        issue.service.ts
-        analysis.service.ts
-        ai/               # provider clients + fallback chain
+      modules/
+        users/
+          service.ts
+          types.ts
+          repo.ts
+          index.ts
+        ...other
+      common/
+        ast-analyzer/     # analyzes the codebase from the repo URL
+        ai/               # the core ai functionalities
         github/           # GitHub API client
-      repositories/
+        ...other
       db/                 # drizzle schema + migrations
       queues/
         connection.ts     # Upstash/BullMQ connection
@@ -46,6 +53,8 @@ src/
         ai-analysis.queue.ts
   workers/                # worker entrypoints (run via `pnpm worker`)
 docs/
+static/
+  images/
 ```
 
 ## Data model (draft)
