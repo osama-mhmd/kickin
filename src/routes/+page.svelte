@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button from '$components/ui/button.svelte'
+	import { Button } from '$components/ui/button';
 </script>
 
 <h1>Welcome to SvelteKit</h1>
