@@ -10,7 +10,7 @@
 	aria-label="KickIn home"
 	class={cn('group inline-flex items-center gap-2.5', className)}
 >
-	<span
+	<!-- <span
 		class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform group-hover:-rotate-3"
 	>
 		<svg viewBox="0 0 32 32" fill="none" aria-hidden="true" class="size-4">
@@ -23,5 +23,6 @@
 			/>
 		</svg>
 	</span>
-	<span class="text-[17px] font-semibold tracking-tight text-zinc-100">KickIn</span>
+	<span class="text-[17px] font-semibold tracking-tight text-zinc-100">KickIn</span> -->
+	<img src="/images/logo.png" class="invert max-h-10" alt="Logo" />
 </a>
