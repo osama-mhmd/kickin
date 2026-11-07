@@ -4,6 +4,7 @@
 	import GitHubCta from '$components/site/github-cta.svelte';
 	import GithubIcon from '$components/site/github-icon.svelte';
 	import Logo from '$components/site/logo.svelte';
+	import { Button } from '$components/ui/button';
 	import { DOCS_URL, GITHUB_REPO_URL } from '#lib/site.ts';
 	import { cn } from '#lib/utils.ts';
 
@@ -141,7 +142,12 @@
 		>
 			<p>© {year} KickIn. Free and open source.</p>
 			<div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-				<span>Built with SvelteKit, TypeScript, Drizzle and BullMQ.</span>
+				<span>
+					Built by
+					<Button variant="link" class="px-1 text-xs"
+						><a href="https://osama-mhmd.vercel.app">Osama Mohammed</a></Button
+					></span
+				>
 				<a
 					href="#top"
 					class="inline-flex items-center gap-1.5 transition-colors hover:text-zinc-300"
