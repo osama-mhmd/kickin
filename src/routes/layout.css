@@ -27,6 +27,33 @@
 	--radius-xl: calc(var(--radius) + 4px);
 }
 
+html {
+	scroll-behavior: smooth;
+	color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+
+body {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+
+::selection {
+	background: var(--primary);
+	color: var(--primary-foreground);
+}
+
+.bg-grid {
+	background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.06) 1px, transparent 0);
+	background-size: 32px 32px;
+}
+
 :root {
 	--background: oklch(0.145 0 0);
 	--foreground: oklch(0.985 0 0);
