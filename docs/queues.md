@@ -39,14 +39,26 @@ Each queue gets its own worker with its own concurrency and rate limit.
 
 - BullMQ polls Redis, and Upstash meters commands. Keep the number of workers and queues small, and raise polling/stalled-check intervals where BullMQ allows it. Check Upstash's current free-tier command limits.
 - Run workers as a separate long-running process (`pnpm worker`), not inside SvelteKit endpoints (`+server.ts`), load functions, or serverless functions.
-- Use one shared ioredis-compatible connection config in `src/lib/server/queues/connection.ts`.
+- Use one shared ioredis-compatible connection config in `src/lib/server/common/queues/connection.ts`.
 
 ## Queue module (application code)
+
+The queue module is a common module under `src/lib/server/common/queues`:
+
+```
+queues/
+  index.ts          # public API + shared/default module instance
+  connection.ts     # Redis connection config
+  errors.ts         # typed errors
+  definitions/      # queue names, policy, deterministic ids, validation
+  manager/          # BullMQ wrapper (enqueue, getJob, remove, watchJob)
+  sse/              # job events -> text/event-stream
+```
 
 Do **not** import `bullmq` in services, routes, or workers. Go through the queue module:
 
 ```ts
-import { getQueueModule } from '$lib/server/queues';
+import { getQueueModule } from '$lib/server/common/queues';
 
 const queues = getQueueModule();
 
@@ -67,9 +79,10 @@ Use `createQueueModule({ connection, queueFactory })` in tests or a worker that 
 What the module owns:
 
 - `connection.ts`: the one Redis config (`UPSTASH_REDIS_URL`, `redis://` or `rediss://`).
-- `definitions.ts`: queue names, default retry/removal policy, deterministic id builders, payload validation.
-- `queue-manager.ts`: the wrapper (`enqueue`, `getJob`, `remove`, `watchJob`, `close`).
-- `sse.ts`: turns job events into a `text/event-stream` body.
+- `errors.ts`: typed queue errors.
+- `definitions/`: queue names, default retry/removal policy, deterministic id builders, payload validation.
+- `manager/`: the wrapper (`enqueue`, `getJob`, `remove`, `watchJob`, `close`).
+- `sse/`: turns job events into a `text/event-stream` body.
 
 Jobs carry references, not blobs. Keep big data in Postgres. The module validates the payload shape before a job is written, so a malformed job never reaches a worker.
 
@@ -111,4 +124,4 @@ The helper closes its `EventSource` on terminal events. If you use `EventSource`
 
 - Routes validate `queue` with `isQueueName` and stay thin.
 - Services call the queue module; workers consume jobs and call services. Neither imports repositories of another module.
-- The SSE helper lives in `src/lib/queues` (shared contract + browser helper). Implementation lives in `src/lib/server/queues` and must not be imported by UI code.
+- The SSE helper lives in `src/lib/queues` (shared contract + browser helper). Implementation lives in `src/lib/server/common/queues` and must not be imported by UI code.

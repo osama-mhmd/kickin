@@ -78,6 +78,9 @@ importers:
       eslint-plugin-svelte:
         specifier: ^3.19.0
         version: 3.24.0(eslint@10.7.0(jiti@2.7.0))(svelte@5.57.3(@typescript-eslint/types@8.63.0))
+      eventsource:
+        specifier: ^5.1.4
+        version: 5.1.4
       globals:
         specifier: ^17.6.0
         version: 17.7.0
@@ -1362,6 +1365,14 @@ packages:
   esutils@2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
+
+  eventsource-parser@4.1.3:
+    resolution: {integrity: sha512-jZVIVilXZfAx6H20ZKKEj5dabbpD9ETmMj3uHsjMmgBzBHB6tsHrmdWB4mAiy3amtN6MOoVkfXRQu4wf1n88Rw==}
+    engines: {node: '>=22.12'}
+
+  eventsource@5.1.4:
+    resolution: {integrity: sha512-awkjURTcaMUKjtEqM/78nMtFSfGcgGST6EbXGV2/E7LJXzWwnNaByn1zACiX9VluWzokVeHpjRdzo3nZr9zhMg==}
+    engines: {node: '>=22.12.0'}
 
   expect-type@1.4.0:
     resolution: {integrity: sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==}
@@ -3006,6 +3017,12 @@ snapshots:
       '@types/estree': 1.0.9
 
   esutils@2.0.3: {}
+
+  eventsource-parser@4.1.3: {}
+
+  eventsource@5.1.4:
+    dependencies:
+      eventsource-parser: 4.1.3
 
   expect-type@1.4.0: {}
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { isQueueName } from '#lib/queues/types.ts';
-import { assertJobData, assertJobId, buildJobId } from './definitions';
-import { QueueValidationError } from './errors';
+import { assertJobData, assertJobId, buildJobId } from './index';
+import { QueueValidationError } from '../errors';
 
 describe('buildJobId', () => {
 	test('builds a deterministic repo computation id', () => {

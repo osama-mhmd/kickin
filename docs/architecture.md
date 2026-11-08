@@ -50,14 +50,14 @@ src/
         ast-analyzer/     # analyzes the codebase from the repo URL
         ai/               # the core ai functionalities
         github/           # GitHub API client
+        queues/
+          connection.ts   # Upstash/BullMQ connection
+          definitions/    # queue names, policy, deterministic job ids
+          manager/        # the BullMQ wrapper (enqueue, status, watch)
+          sse/            # job events -> text/event-stream
+          index.ts
         ...other
       db/                 # drizzle schema + migrations
-      queues/
-        connection.ts     # Upstash/BullMQ connection
-        definitions.ts    # queue names, policy, deterministic job ids
-        queue-manager.ts  # the BullMQ wrapper (enqueue, status, watch)
-        sse.ts            # job events -> text/event-stream
-        index.ts
   workers/                # worker entrypoints (run via `pnpm worker`)
 docs/
 static/

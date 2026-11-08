@@ -2,7 +2,7 @@
  * Shared queue contract.
  *
  * These types are safe to import from the browser. The implementation lives in
- * `src/lib/server/queues` and must never be imported by UI code.
+ * `src/lib/server/common/queues` and must never be imported by UI code.
  */
 
 export const QUEUE_NAMES = ['repo-computation', 'ai-analysis'] as const;

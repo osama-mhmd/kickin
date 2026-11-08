@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { isQueueName } from '#lib/queues/types.ts';
-import { QueueError, getQueueModule } from '#lib/server/queues/index.ts';
+import { QueueError, getQueueModule } from '#lib/server/common/queues/index.ts';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params }) => {

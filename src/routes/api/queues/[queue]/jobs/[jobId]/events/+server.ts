@@ -1,6 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { isQueueName } from '#lib/queues/types.ts';
-import { QueueError, createJobEventStream, getQueueModule } from '#lib/server/queues/index.ts';
+import {
+	QueueError,
+	createJobEventStream,
+	getQueueModule
+} from '#lib/server/common/queues/index.ts';
 import type { RequestHandler } from './$types';
 
 /**

@@ -1,4 +1,4 @@
-import { QueueModule, type QueueModuleOptions } from './queue-manager';
+import { QueueModule, type QueueModuleOptions } from './manager';
 
 export * from '#lib/queues/types.ts';
 export * from './definitions';
@@ -12,7 +12,7 @@ export {
 	type QueueJob,
 	type QueueModuleOptions,
 	type WatchJobOptions
-} from './queue-manager';
+} from './manager';
 export { createRedisConnectionOptions } from './connection';
 export { createJobEventStream, formatJobEvent } from './sse';
 
@@ -27,6 +27,11 @@ export function getQueueModule(): QueueModule {
 	defaultModule ??= createQueueModule();
 
 	return defaultModule;
+}
+
+/** Replace the shared module. Intended for tests and worker bootstrap. */
+export function setQueueModule(module: QueueModule | undefined): void {
+	defaultModule = module;
 }
 
 /** Close and reset the shared module, mainly for tests and graceful shutdown. */

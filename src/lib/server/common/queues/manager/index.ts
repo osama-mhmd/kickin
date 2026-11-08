@@ -9,14 +9,14 @@ import type {
 	QueueName
 } from '#lib/queues/types.ts';
 import { isTerminalJobState } from '#lib/queues/types.ts';
-import { createRedisConnectionOptions } from './connection';
+import { createRedisConnectionOptions } from '../connection';
 import {
 	QUEUE_DEFINITIONS,
 	QUEUE_PREFIX,
 	assertJobData,
 	assertJobId,
 	buildJobId
-} from './definitions';
+} from '../definitions';
 
 /** The slice of a BullMQ Job this module relies on. Keeps tests driver-free. */
 export interface QueueJob<Data = unknown> {

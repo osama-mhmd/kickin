@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import type { JobEvent } from '#lib/queues/types.ts';
-import { createJobEventStream, formatJobEvent } from './sse';
+import { createJobEventStream, formatJobEvent } from './index';
 
 function event(type: JobEvent['type'], id = 'job.1'): JobEvent {
 	return {

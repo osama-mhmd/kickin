@@ -5,7 +5,7 @@ import type {
 	QueueName,
 	RepoComputationJobData
 } from '#lib/queues/types.ts';
-import { QueueValidationError } from './errors';
+import { QueueValidationError } from '../errors';
 
 /** Namespaces all BullMQ keys so KickIn can share a Redis database. */
 export const QUEUE_PREFIX = 'kickin';

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { EnqueueOptions, JobEvent, JobProgress, JobState } from '#lib/queues/types.ts';
-import { QueueValidationError } from './errors';
-import { QueueModule, type QueueClient, type QueueJob } from './queue-manager';
+import { QueueValidationError } from '../errors';
+import { QueueModule, type QueueClient, type QueueJob } from './index';
 
 const CONNECTION = { url: 'redis://localhost:6379' };
 
