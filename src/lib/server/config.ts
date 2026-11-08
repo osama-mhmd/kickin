@@ -36,5 +36,9 @@ export const config = {
 	},
 	get groqApiKey(): string | undefined {
 		return readOptional('GROQ_API_KEY');
+	},
+	/** JSON array of `{ provider, model, rpm?, maxTokens?, timeoutMs? }` entries. */
+	get aiFallbackChain(): string | undefined {
+		return readOptional('AI_FALLBACK_CHAIN');
 	}
 };
