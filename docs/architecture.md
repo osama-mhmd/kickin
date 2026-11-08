@@ -66,17 +66,28 @@ static/
 
 ## Data model (draft)
 
-| Table               | Key fields                                                                                                                    |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `users`             | id, github_id, github_username                                                                                                |
-| `user_profiles`     | user_id, languages[], stack[], strengths[], hours_per_week                                                                    |
-| `repos`             | id, owner, name, default_branch, latest_computed_sha                                                                          |
-| `repo_computations` | id, repo_id, commit_sha, status, hierarchy (jsonb), computed_at                                                               |
-| `issues`            | id, repo_id, github_number, title, body, labels[], state, fetched_at                                                          |
-| `issue_discussions` | issue_id, comments (jsonb) or normalized rows                                                                                 |
-| `issue_analyses`    | id, issue_id, user_id (nullable for maintainer view), triage_bucket, rating, reasoning, requested_files[], model_used, status |
+| Table               | Key fields / notes                                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`             | id, github_id (stable, unique), github_login, name, email?, avatar_url, last_login_at                                                        |
+| `github_accounts`   | user_id (PK), access_token, refresh_token?, token_expires_at, scope. Tokens are encrypted at rest.                                           |
+| `sessions`          | id (hashed token, PK), user_id, expires_at, user_agent, ip_hash                                                                              |
+| `profiles`          | user_id (PK), headline, hours_per_week, timezone, professional_years, opensource_years, onboarding_completed_at                              |
+| `profile_languages` | (user_id, language) PK, level (beginner/intermediate/advanced/expert), years?, is_primary                                                    |
+| `repositories`      | id, github_id, owner, name, default_branch, language, stars, size_kb; unique on github_id and lower(owner)+lower(name)                       |
+| `repo_computations` | id, repository_id, commit_sha, branch, status, hierarchy (jsonb), file_count, algorithm_version; unique on `(repository_id, commit_sha)`     |
+| `issues`            | id, repository_id, number, github_id, title, body, labels (jsonb), assignees (jsonb), state, timestamps; unique `(repository_id, number)`    |
+| `issue_analyses`    | id, issue_id (unique), repo_computation_id, level (0/1/2), summary, reasoning, suggested_labels, clarifying_questions, status, input_hash    |
+| `issue_matches`     | id, user_id, issue_id, issue_analysis_id, fit_rating (0–10), confidence, evidence, risks, estimated_hours, final_score; unique (user, issue) |
+| `reports`           | id, user_id?, category, message, status, entity refs, resolution_note, resolved_at                                                           |
+| `health_checks`     | id, target, ok, status_code, latency_ms, error, checked_at                                                                                   |
+| `incidents`         | id, title, description, severity, status, started_at, resolved_at                                                                            |
+| `ai_calls`          | id, provider, model, purpose, success, json_valid, latency_ms, tokens, rating, created_at                                                    |
 
-`repo_computations` is unique on `(repo_id, commit_sha)`; that is the cache key.
+`repo_computations` is unique on `(repository_id, commit_sha)`; that is the cache key. `branch` is metadata only, because the same commit has the same tree on every branch.
+
+`issue_analyses` holds the user-independent verdict (`level`: 0 = remove, 1 = clarify, 2 = delegate). Only level 2 gets per-user `issue_matches`. This avoids duplicating the general verdict per user and keeps the maintainer view independent of any contributor profile.
+
+Uptime is computed from `health_checks` (ok / total over a window), never from web request success ratios. Incidents are human-written status-page entries; user-submitted problems live in `reports`.
 
 ## End-to-end flow
 
