@@ -86,7 +86,7 @@ src/lib/server/common/
 - Read secrets and configuration through `src/lib/server/config.ts`. Never read `process.env` in feature files.
 - Import nothing from SvelteKit (`$app/*`, `$env/*`). Workers must be able to import the module.
 - Never import repositories or the database.
-- Accept an injected `fetch` so tests can run without network access.
+- Accept an injected `fetch` for controlled unit tests and custom transports. Live integration tests must still hit the real API.
 - Errors are typed classes, not strings. Callers switch on `instanceof` and `code`.
 - Return plain data (arrays, records, streams) and small result objects. No SvelteKit `Response` leaks into services.
 - Export a barrel `index.ts` and a factory. A factory makes the module easy to instantiate in tests and workers; a lazily created default instance keeps application code short.
@@ -220,9 +220,10 @@ try {
 
 ## Tests
 
-- `pnpm test` runs every `src/**/*.test.ts` with `tsx --test`.
-- Inject a fake `fetch`; unit tests must not hit the network.
-- Common module tests cover URLs, headers, pagination, error mapping, and streaming/download behavior.
+- `pnpm test` runs every `src/**/*.test.ts` with `tsx --test`, including the live integration tests.
+- `pnpm test:integration` runs only the live GitHub tests in `*.integration.test.ts`.
+- Integration tests require `GITHUB_TOKEN` and hit the real GitHub API. They verify the actual contract against `osama-mhmd/kickin` (repository, stars, tarball streaming/download) and `sveltejs/svelte` (issue listing, pagination, offset, PR filtering). They are not mocked.
+- Unit tests inject a fake `fetch` for edge cases that are hard to trigger against the live API: rate limits, page-boundary pagination, invalid repository references, and overwrite protection.
 - Database module tests focus on service behavior. Repositories are thin and can be covered with integration tests when a database is available.
 
 ## Checklist for a new module or capability
