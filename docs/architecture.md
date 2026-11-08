@@ -109,4 +109,3 @@ Uptime is computed from `health_checks` (ok / total over a window), never from w
 - Issue selection: which issues to fetch (open only? label filters? cap per repo?).
 - How "time available" influences ranking (deterministic filter vs. prompt input).
 - Auth details (GitHub OAuth scopes) and whether maintainers must prove repo ownership for the triage view.
-- Whether AST parsing (for example tree-sitter) is needed beyond the file tree in v1.
