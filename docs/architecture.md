@@ -21,6 +21,8 @@ Rules are enforced by convention and, ideally, by lint (`no-restricted-imports`)
 
 Note: the `$lib` alias only exists inside Vite. Worker entrypoints should use relative imports (or `tsconfig` paths with a runner such as `tsx`) to reach `src/lib/server/`.
 
+For the two kinds of modules (database modules in `modules/` and common modules in `common/`), their rules, and the GitHub module reference, see [`modules.md`](modules.md).
+
 ## Proposed folder layout
 
 ```

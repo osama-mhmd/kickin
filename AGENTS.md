@@ -16,9 +16,9 @@ SvelteKit · TypeScript (strict) · Tailwind CSS · Drizzle ORM · PostgreSQL ·
 ```bash
 pnpm dev            # web app
 pnpm worker         # BullMQ workers (separate long-running process)
-pnpm typecheck      # tsc --noEmit
+pnpm typecheck      # svelte-check (TypeScript + Svelte)
 pnpm lint
-pnpm test
+pnpm test           # tsx --test
 pnpm db:generate    # drizzle-kit generate
 pnpm db:migrate
 ```
@@ -68,6 +68,7 @@ Ask, or leave a `TODO(question):` comment, rather than inventing product behavio
 ## Docs map
 
 - `docs/architecture.md`: layers, folder layout, data model, full flow
+- `docs/modules.md`: database vs common modules, rules, and the GitHub module
 - `docs/queues.md`: queues, workers, retries, rate limits
 - `docs/repo-computation.md`: tarball + hierarchy extraction
 - `docs/ai-analysis.md`: prompt contract, JSON schema, anti-optimism

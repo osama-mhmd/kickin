@@ -24,5 +24,5 @@
 		</svg>
 	</span>
 	<span class="text-[17px] font-semibold tracking-tight text-zinc-100">KickIn</span> -->
-	<img src="/images/logo.png" class="invert max-h-10" alt="Logo" />
+	<img src="/images/logo.png" class="max-h-10 invert" alt="Logo" />
 </a>

@@ -21,29 +21,31 @@ It must answer in **strict JSON**. Nothing else is accepted.
 
 ```ts
 const NeedsFiles = z.object({
-  type: z.literal("needs_files"),
-  files: z.array(z.string()).min(1).max(5),   // must exist in the hierarchy
-  reason: z.string().max(300),
+	type: z.literal('needs_files'),
+	files: z.array(z.string()).min(1).max(5), // must exist in the hierarchy
+	reason: z.string().max(300)
 });
 
 const Verdict = z.object({
-  type: z.literal("verdict"),
-  triage: z.enum(["remove", "clarify", "delegate"]),
-  triageReason: z.string().max(400),
-  // contributor mode only:
-  fit: z.object({
-    rating: z.number().int().min(0).max(10),
-    confidence: z.enum(["low", "medium", "high"]),
-    evidence: z.array(z.string()).min(1).max(5),   // concrete facts from the issue/repo
-    risks: z.array(z.string()).min(1).max(5),      // reasons this could go wrong; must be non-empty
-    estimatedHours: z.number().min(0.5).max(80),
-  }).optional(),
-  // maintainer mode only:
-  suggestedLabels: z.array(z.string()).max(6).optional(),
-  clarifyingQuestions: z.array(z.string()).max(4).optional(),
+	type: z.literal('verdict'),
+	triage: z.enum(['remove', 'clarify', 'delegate']),
+	triageReason: z.string().max(400),
+	// contributor mode only:
+	fit: z
+		.object({
+			rating: z.number().int().min(0).max(10),
+			confidence: z.enum(['low', 'medium', 'high']),
+			evidence: z.array(z.string()).min(1).max(5), // concrete facts from the issue/repo
+			risks: z.array(z.string()).min(1).max(5), // reasons this could go wrong; must be non-empty
+			estimatedHours: z.number().min(0.5).max(80)
+		})
+		.optional(),
+	// maintainer mode only:
+	suggestedLabels: z.array(z.string()).max(6).optional(),
+	clarifyingQuestions: z.array(z.string()).max(4).optional()
 });
 
-const AiResponse = z.discriminatedUnion("type", [NeedsFiles, Verdict]);
+const AiResponse = z.discriminatedUnion('type', [NeedsFiles, Verdict]);
 ```
 
 Validate with zod. Additionally check that every requested file path exists in the stored hierarchy; reject hallucinated paths.
