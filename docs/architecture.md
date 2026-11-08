@@ -34,6 +34,9 @@ src/
   routes/                 # pages, +page.server.ts (load + form actions), +server.ts
   lib/
     schemas/              # zod schemas shared by server layer and workers
+    queues/               # shared queue contract + browser EventSource helper
+      types.ts
+      job-events.ts
     server/               # server-only code ($lib/server)
       config.ts           # env access (no $env imports, so workers can use it)
       modules/
@@ -51,8 +54,10 @@ src/
       db/                 # drizzle schema + migrations
       queues/
         connection.ts     # Upstash/BullMQ connection
-        repo-computation.queue.ts
-        ai-analysis.queue.ts
+        definitions.ts    # queue names, policy, deterministic job ids
+        queue-manager.ts  # the BullMQ wrapper (enqueue, status, watch)
+        sse.ts            # job events -> text/event-stream
+        index.ts
   workers/                # worker entrypoints (run via `pnpm worker`)
 docs/
 static/

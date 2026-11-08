@@ -40,3 +40,75 @@ Each queue gets its own worker with its own concurrency and rate limit.
 - BullMQ polls Redis, and Upstash meters commands. Keep the number of workers and queues small, and raise polling/stalled-check intervals where BullMQ allows it. Check Upstash's current free-tier command limits.
 - Run workers as a separate long-running process (`pnpm worker`), not inside SvelteKit endpoints (`+server.ts`), load functions, or serverless functions.
 - Use one shared ioredis-compatible connection config in `src/lib/server/queues/connection.ts`.
+
+## Queue module (application code)
+
+Do **not** import `bullmq` in services, routes, or workers. Go through the queue module:
+
+```ts
+import { getQueueModule } from '$lib/server/queues';
+
+const queues = getQueueModule();
+
+const job = await queues.enqueue('ai-analysis', {
+	issueId: 123,
+	userId: user.id,
+	mode: 'contributor',
+	pass: 1
+});
+
+// Repeating the same enqueue is safe: the job id is derived from the payload.
+// The returned snapshot has the deterministic id and the current state.
+console.log(job.id, job.state);
+```
+
+Use `createQueueModule({ connection, queueFactory })` in tests or a worker that needs an isolated module. Call `closeQueueModule()` on shutdown; `close()` on a module is idempotent.
+
+What the module owns:
+
+- `connection.ts`: the one Redis config (`UPSTASH_REDIS_URL`, `redis://` or `rediss://`).
+- `definitions.ts`: queue names, default retry/removal policy, deterministic id builders, payload validation.
+- `queue-manager.ts`: the wrapper (`enqueue`, `getJob`, `remove`, `watchJob`, `close`).
+- `sse.ts`: turns job events into a `text/event-stream` body.
+
+Jobs carry references, not blobs. Keep big data in Postgres. The module validates the payload shape before a job is written, so a malformed job never reaches a worker.
+
+### Progress over SSE
+
+Two thin endpoints expose job progress without letting the UI talk to Redis:
+
+| Endpoint                                    | Purpose                             |
+| ------------------------------------------- | ----------------------------------- |
+| `GET /api/queues/:queue/jobs/:jobId`        | One JSON snapshot                   |
+| `GET /api/queues/:queue/jobs/:jobId/events` | SSE stream of progress/state events |
+
+The SSE route is a thin adapter over `QueueModule.watchJob`. It polls the job, emits only changes (`snapshot`, `state`, `progress`), and closes after `completed`, `failed`, `removed`, `timeout`, or `stream-error`. A missing job keeps the connection open briefly because it may be enqueued milliseconds later.
+
+Client usage (`$lib/queues` is browser-safe):
+
+```svelte
+<script lang="ts">
+	import { watchJobEvents, type JobEvent } from '$lib/queues';
+
+	let events = $state<JobEvent[]>([]);
+
+	$effect(() => {
+		const subscription = watchJobEvents('ai-analysis', jobId, {
+			onEvent: (event) => events.push(event),
+			onTransportError: () => {
+				// EventSource reconnects automatically; surface a hint if needed.
+			}
+		});
+
+		return () => subscription.close();
+	});
+</script>
+```
+
+The helper closes its `EventSource` on terminal events. If you use `EventSource` directly, do the same: the server closing the response otherwise makes the browser reconnect forever.
+
+### Boundaries
+
+- Routes validate `queue` with `isQueueName` and stay thin.
+- Services call the queue module; workers consume jobs and call services. Neither imports repositories of another module.
+- The SSE helper lives in `src/lib/queues` (shared contract + browser helper). Implementation lives in `src/lib/server/queues` and must not be imported by UI code.
