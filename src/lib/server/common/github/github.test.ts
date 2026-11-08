@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import test from 'node:test';
+import { expect, onTestFinished, test } from 'vitest';
 import {
 	createGitHubModule,
 	GitHubApiError,
@@ -83,19 +82,19 @@ test('getRepository sends the configured auth headers', async () => {
 	const repo = await github.repositories.get('owner/repo');
 	const headers = new Headers(requests[0].init.headers);
 
-	assert.equal(repo.stargazers_count, 42);
-	assert.equal(requests[0].url.href, 'https://api.github.com/repos/owner/repo');
-	assert.equal(headers.get('authorization'), 'Bearer secret-token');
-	assert.equal(headers.get('x-github-api-version'), '2022-11-28');
-	assert.equal(headers.get('user-agent'), 'kickin');
-	assert.equal(headers.get('accept'), 'application/vnd.github+json');
+	expect(repo.stargazers_count).toBe(42);
+	expect(requests[0].url.href).toBe('https://api.github.com/repos/owner/repo');
+	expect(headers.get('authorization')).toBe('Bearer secret-token');
+	expect(headers.get('x-github-api-version')).toBe('2022-11-28');
+	expect(headers.get('user-agent')).toBe('kickin');
+	expect(headers.get('accept')).toBe('application/vnd.github+json');
 });
 
 test('getRepositoryStars returns the stargazer count', async () => {
 	const fetch: GitHubFetch = async () => jsonResponse(repository({ stargazers_count: 7 }));
 	const github = createGitHubModule({ token: 'token', fetch });
 
-	assert.equal(await github.repositories.getStars('owner/repo'), 7);
+	expect(await github.repositories.getStars('owner/repo')).toBe(7);
 });
 
 test('listIssues applies offset and filters pull requests by default', async () => {
@@ -116,12 +115,9 @@ test('listIssues applies offset and filters pull requests by default', async () 
 
 	const issues = await github.issues.list('owner/repo', { limit: 2, offset: 1 });
 
-	assert.deepEqual(
-		issues.map((item) => item.number),
-		[3, 4]
-	);
-	assert.equal(requests[0].url.searchParams.get('per_page'), '100');
-	assert.equal(requests[0].url.searchParams.get('state'), 'open');
+	expect(issues.map((item) => item.number)).toEqual([3, 4]);
+	expect(requests[0].url.searchParams.get('per_page')).toBe('100');
+	expect(requests[0].url.searchParams.get('state')).toBe('open');
 });
 
 test('listIssues paginates when offset and limit cross a page boundary', async () => {
@@ -149,11 +145,8 @@ test('listIssues paginates when offset and limit cross a page boundary', async (
 		includePullRequests: true
 	});
 
-	assert.deepEqual(
-		issues.map((item) => item.number),
-		[100, 101]
-	);
-	assert.deepEqual(pages, [1, 2]);
+	expect(issues.map((item) => item.number)).toEqual([100, 101]);
+	expect(pages).toEqual([1, 2]);
 });
 
 test('listIssues supports label filtering and issue state', async () => {
@@ -174,10 +167,10 @@ test('listIssues supports label filtering and issue state', async () => {
 
 	const url = requests[0].url;
 
-	assert.equal(url.searchParams.get('state'), 'all');
-	assert.equal(url.searchParams.get('labels'), 'good first issue,help wanted');
-	assert.equal(url.searchParams.get('sort'), 'updated');
-	assert.equal(url.searchParams.get('direction'), 'asc');
+	expect(url.searchParams.get('state')).toBe('all');
+	expect(url.searchParams.get('labels')).toBe('good first issue,help wanted');
+	expect(url.searchParams.get('sort')).toBe('updated');
+	expect(url.searchParams.get('direction')).toBe('asc');
 });
 
 test('GitHub API errors are typed and expose rate limit details', async () => {
@@ -194,43 +187,43 @@ test('GitHub API errors are typed and expose rate limit details', async () => {
 			}
 		);
 	const github = createGitHubModule({ token: 'token', fetch });
+	const error = await github.repositories.get('owner/repo').catch((cause: unknown) => cause);
 
-	await assert.rejects(github.repositories.get('owner/repo'), (error: unknown) => {
-		assert.ok(error instanceof GitHubRateLimitError);
-		assert.equal(error.status, 403);
-		assert.equal(error.remaining, 0);
-		assert.equal(error.limit, 60);
-		assert.equal(error.resetAt?.getTime(), 1_700_000_000_000);
+	expect(error).toBeInstanceOf(GitHubRateLimitError);
 
-		return true;
-	});
+	const rateLimit = error as GitHubRateLimitError;
+
+	expect(rateLimit.status).toBe(403);
+	expect(rateLimit.remaining).toBe(0);
+	expect(rateLimit.limit).toBe(60);
+	expect(rateLimit.resetAt?.getTime()).toBe(1_700_000_000_000);
 });
 
 test('not found responses use the not_found error code', async () => {
 	const fetch: GitHubFetch = async () => jsonResponse({ message: 'Not Found' }, { status: 404 });
 	const github = createGitHubModule({ token: 'token', fetch });
+	const error = await github.repositories.get('owner/repo').catch((cause: unknown) => cause);
 
-	await assert.rejects(github.repositories.get('owner/repo'), (error: unknown) => {
-		assert.ok(error instanceof GitHubApiError);
-		assert.equal(error.code, 'not_found');
-		assert.equal(error.isNotFound, true);
+	expect(error).toBeInstanceOf(GitHubApiError);
 
-		return true;
-	});
+	const apiError = error as GitHubApiError;
+
+	expect(apiError.code).toBe('not_found');
+	expect(apiError.isNotFound).toBe(true);
 });
 
 test('a missing token fails fast with a configuration error', () => {
-	assert.throws(() => createGitHubModule({ token: '' }), GitHubConfigurationError);
+	expect(() => createGitHubModule({ token: '' })).toThrow(GitHubConfigurationError);
 });
 
 test('repository references are validated', () => {
-	assert.deepEqual(normalizeRepositoryRef('owner/repo'), { owner: 'owner', name: 'repo' });
-	assert.deepEqual(normalizeRepositoryRef({ owner: 'owner', name: 'repo' }), {
+	expect(normalizeRepositoryRef('owner/repo')).toEqual({ owner: 'owner', name: 'repo' });
+	expect(normalizeRepositoryRef({ owner: 'owner', name: 'repo' })).toEqual({
 		owner: 'owner',
 		name: 'repo'
 	});
-	assert.throws(() => normalizeRepositoryRef('owner'), GitHubValidationError);
-	assert.throws(() => normalizeRepositoryRef('owner/repo/extra'), GitHubValidationError);
+	expect(() => normalizeRepositoryRef('owner')).toThrow(GitHubValidationError);
+	expect(() => normalizeRepositoryRef('owner/repo/extra')).toThrow(GitHubValidationError);
 });
 
 test('fetchRepositoryTarball exposes the response stream and filename', async () => {
@@ -251,15 +244,15 @@ test('fetchRepositoryTarball exposes the response stream and filename', async ()
 	const tarball = await github.tarballs.fetch('owner/repo', { ref: 'feature/x' });
 	const bytes = new Uint8Array(await new Response(tarball.stream).arrayBuffer());
 
-	assert.equal(requests[0].url.pathname, '/repos/owner/repo/tarball/feature%2Fx');
-	assert.equal(tarball.filename, 'owner-repo-abc.tar.gz');
-	assert.equal(tarball.contentType, 'application/gzip');
-	assert.deepEqual([...bytes], [1, 2, 3]);
+	expect(requests[0].url.pathname).toBe('/repos/owner/repo/tarball/feature%2Fx');
+	expect(tarball.filename).toBe('owner-repo-abc.tar.gz');
+	expect(tarball.contentType).toBe('application/gzip');
+	expect([...bytes]).toEqual([1, 2, 3]);
 });
 
-test('downloadRepositoryTarball writes the stream to disk', async (t) => {
+test('downloadRepositoryTarball writes the stream to disk', async () => {
 	const directory = await mkdtemp(join(tmpdir(), 'kickin-github-'));
-	t.after(async () => rm(directory, { recursive: true, force: true }));
+	onTestFinished(async () => rm(directory, { recursive: true, force: true }));
 
 	const fetch: GitHubFetch = async () =>
 		new Response(new Uint8Array([4, 5, 6]), {
@@ -274,15 +267,15 @@ test('downloadRepositoryTarball writes the stream to disk', async (t) => {
 	const file = await readFile(downloaded.path);
 	const fileInfo = await stat(downloaded.path);
 
-	assert.equal(downloaded.bytes, 3);
-	assert.equal(downloaded.filename, 'snapshot.tar.gz');
-	assert.equal(fileInfo.size, 3);
-	assert.deepEqual([...file], [4, 5, 6]);
+	expect(downloaded.bytes).toBe(3);
+	expect(downloaded.filename).toBe('snapshot.tar.gz');
+	expect(fileInfo.size).toBe(3);
+	expect([...file]).toEqual([4, 5, 6]);
 });
 
-test('downloadRepositoryTarball refuses to overwrite when asked', async (t) => {
+test('downloadRepositoryTarball refuses to overwrite when asked', async () => {
 	const directory = await mkdtemp(join(tmpdir(), 'kickin-github-'));
-	t.after(async () => rm(directory, { recursive: true, force: true }));
+	onTestFinished(async () => rm(directory, { recursive: true, force: true }));
 
 	const fetch: GitHubFetch = async () => new Response(new Uint8Array([7]), { status: 200 });
 	const github = createGitHubModule({ token: 'token', fetch });
@@ -290,8 +283,7 @@ test('downloadRepositoryTarball refuses to overwrite when asked', async (t) => {
 
 	await github.tarballs.download('owner/repo', destination);
 
-	await assert.rejects(
-		github.tarballs.download('owner/repo', destination, { overwrite: false }),
-		GitHubValidationError
-	);
+	await expect(
+		github.tarballs.download('owner/repo', destination, { overwrite: false })
+	).rejects.toBeInstanceOf(GitHubValidationError);
 });

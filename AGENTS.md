@@ -18,7 +18,7 @@ pnpm dev            # web app
 pnpm worker         # BullMQ workers (separate long-running process)
 pnpm typecheck      # svelte-check (TypeScript + Svelte)
 pnpm lint
-pnpm test           # tsx --test
+pnpm test           # vitest run (includes live GitHub tests)
 pnpm db:generate    # drizzle-kit generate
 pnpm db:migrate
 ```

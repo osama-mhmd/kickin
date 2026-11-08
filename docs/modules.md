@@ -220,8 +220,10 @@ try {
 
 ## Tests
 
-- `pnpm test` runs every `src/**/*.test.ts` with `tsx --test`, including the live integration tests.
+- `pnpm test` runs every `src/**/*.test.ts` with Vitest, including the live integration tests.
+- `pnpm test:unit` skips the `*.integration.test.ts` files.
 - `pnpm test:integration` runs only the live GitHub tests in `*.integration.test.ts`.
+- `pnpm test:watch` keeps Vitest running in watch mode.
 - Integration tests require `GITHUB_TOKEN` and hit the real GitHub API. They verify the actual contract against `osama-mhmd/kickin` (repository, stars, tarball streaming/download) and `sveltejs/svelte` (issue listing, pagination, offset, PR filtering). They are not mocked.
 - Unit tests inject a fake `fetch` for edge cases that are hard to trigger against the live API: rate limits, page-boundary pagination, invalid repository references, and overwrite protection.
 - Database module tests focus on service behavior. Repositories are thin and can be covered with integration tests when a database is available.
