@@ -39,6 +39,8 @@ Order by JSON reliability first, speed second:
 
 Swap entries freely; the chain lives in config, one entry per `{provider, model, rpm, maxTokens}`.
 
+The AI common module (`src/lib/server/common/ai`) implements this chain. Its default is data in `chain.ts`; override it without touching logic by setting `AI_FALLBACK_CHAIN` to a JSON array of the same entries. Providers without a key are skipped, so `.env` can hold only the keys you actually have.
+
 ## Rules
 
 - Chain config is data, not code. Adding or removing a model must not need a deploy of logic.

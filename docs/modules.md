@@ -218,6 +218,110 @@ try {
 
 ---
 
+## AI module reference
+
+**Configuration:** `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, and the optional `AI_FALLBACK_CHAIN` JSON array. The module reads them through `src/lib/server/config.ts`. A provider without a key is skipped with a `configuration` failure, then the chain continues.
+
+**Import path:** `$lib/server/common/ai` in the SvelteKit app, or a relative import from workers.
+
+### Quick start
+
+```ts
+import { z } from 'zod';
+import { getAiModule } from '$lib/server/common/ai';
+
+const ai = getAiModule();
+
+// Direct interaction: message + history + rules in, text out.
+const answer = await ai.ask({
+	message: 'Explain this issue in one paragraph.',
+	history: [
+		{ role: 'user', content: 'Earlier question' },
+		{ role: 'assistant', content: 'Earlier answer' }
+	],
+	rules: 'You are helping a maintainer triage GitHub issues.'
+});
+
+// Packed question: strict JSON, schema, semantic checks, anti-optimism rules.
+const Verdict = z.object({
+	triage: z.enum(['remove', 'clarify', 'delegate']),
+	reason: z.string().max(400),
+	evidence: z.array(z.string()).min(1).max(5),
+	risks: z.array(z.string()).min(1).max(5)
+});
+
+const verdict = await ai.askJson({
+	message: issuePrompt,
+	rules: 'Use the triage rubric in docs/ai-analysis.md.',
+	schema: Verdict,
+	checks: (value) => (value.evidence.length > 0 ? [] : ['evidence must not be empty'])
+});
+
+console.log(verdict.value.triage, verdict.provider, verdict.model);
+```
+
+`createAiModule(options)` is the testable/worker-friendly form. It accepts `chain`, `apiKeys`, `fetch`, `timeoutMs`, `temperature`, and `maxRepairAttempts`. Tests inject a fake `fetch`; production should use the default module.
+
+### `ask` vs `askJson`
+
+|                 | `ask`                            | `askJson`                                      |
+| --------------- | -------------------------------- | ---------------------------------------------- |
+| Input           | `message`, `history`, `rules`    | same as `ask`                                  |
+| Output          | text                             | text + schema-validated `value`                |
+| Validation      | none beyond a non-empty response | strict JSON, zod schema, optional `checks`     |
+| Repair          | —                                | one repair per model (then fallback)           |
+| Built-in prompt | caller rules only                | caller rules + skeptical rules + JSON contract |
+
+`askJson` never returns raw, unvalidated model text. Invalid JSON, schema mismatches, and failed `checks` are repairable: the module sends the rejection reasons back once, then moves to the next model. Set `honesty: false` only when a caller supplies an equivalent skeptical prompt; set `repairs` to change the per-model repair count.
+
+`checks` run on the parsed value, not on the raw text. Returning one or more messages rejects the answer and triggers a repair. Use them for business rules that zod cannot express (for example, "confidence must be low when evidence is thin").
+
+### Fallback and failures
+
+The chain is an ordered list of `{ provider, model, rpm?, maxTokens?, timeoutMs? }`. On a provider error, timeout, 429, malformed provider envelope, or invalid JSON/schema after repairs, the module moves to the next entry. It never retries the same model for transport failures; queues own backoff and retries. When the chain is exhausted it throws `AiExhaustedError` with every `AiAttempt`.
+
+Errors are typed classes extending `AiError`: `AiConfigurationError`, `AiValidationError`, `AiProviderError`, `AiRateLimitError`, `AiTimeoutError`, `AiAbortedError`, `AiInvalidResponseError`, `AiInvalidJsonError`, `AiSchemaError`, `AiCheckError`, and `AiExhaustedError`. Switch on `instanceof` and `code`.
+
+### Attempt events and SSE
+
+`ask`/`askJson` accept `onEvent` and return `attempts` metadata. For streaming, use the async generators:
+
+```ts
+const events = ai.streamAskJson({ message, schema, rules });
+```
+
+They yield `attempt`, `failure`, `repair`, `fallback`, `success`, and `exhausted`. A thin route can turn the generator into SSE:
+
+```ts
+import { createAiEventStream, getAiModule } from '$lib/server/common/ai';
+
+export const GET = ({ request }) => {
+	const events = getAiModule().streamAskJson({ message: '…', schema });
+	const body = createAiEventStream(events, { signal: request.signal });
+
+	return new Response(body, {
+		headers: {
+			'content-type': 'text/event-stream; charset=utf-8',
+			'cache-control': 'no-cache, no-transform',
+			connection: 'keep-alive',
+			'x-accel-buffering': 'no'
+		}
+	});
+};
+```
+
+The browser helper is `$lib/ai/events` (`watchAiEvents(url, { onEvent })`). It closes the `EventSource` on `success` or `exhausted`; the server closes the response on those terminal events.
+
+### Boundaries
+
+- No database, queue, or SvelteKit imports. Workers can use the module directly.
+- AI HTTP calls stay in `providers/`; the client owns fallback, validation, and events.
+- Callers own prompt content and domain schemas (`docs/ai-analysis.md`). The module only supplies generic skepticism and the JSON contract.
+- Store `AI_PROMPT_VERSION` alongside analysis rows so prompt changes are traceable.
+- `rpm` is metadata for queue rate limiting; the module does not throttle on its own.
+
+---
+
 ## Tests
 
 - `pnpm test` runs every `src/**/*.test.ts` with Vitest, including the live integration tests.

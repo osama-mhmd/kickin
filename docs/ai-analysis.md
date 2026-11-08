@@ -74,9 +74,12 @@ Models tend to be agreeable and to over-rate fit. Mitigations, in order of impor
 
 ## Failure handling
 
-- Invalid JSON → one repair retry, then `failed`.
+The AI common module (`common/ai`, see `modules.md`) implements this contract: use `askJson` with the response schema and pass the anti-optimism rubric as `rules`.
+
+- Invalid JSON, schema mismatch, or a failed semantic check → one repair retry per model, then the next model.
 - Provider error/timeout/429 → next model in the fallback chain (`free-models.md`).
-- Never store or display unvalidated model output.
+- Exhausted chain → `AiExhaustedError` with every attempt; mark the analysis `failed`. Never guess.
+- Never store or display unvalidated model output. `askJson` only returns a schema-validated `value`.
 
 ## Privacy note
 
