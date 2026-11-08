@@ -198,7 +198,9 @@ export class AiClient {
 
 					attempts.push(attempt);
 
-					yield { type: 'success', attempt };
+					yield spec.parse
+						? { type: 'success', attempt, value }
+						: { type: 'success', attempt, text: response.text };
 
 					return {
 						value,

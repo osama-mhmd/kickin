@@ -63,6 +63,10 @@ export interface AiFallbackEvent {
 export interface AiSuccessEvent {
 	type: 'success';
 	attempt: AiAttempt;
+	/** Present for free-form `ask`. */
+	text?: string;
+	/** Present for `askJson`; already schema-validated. */
+	value?: unknown;
 }
 
 export interface AiExhaustedEvent {

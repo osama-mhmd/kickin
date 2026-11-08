@@ -290,12 +290,14 @@ Errors are typed classes extending `AiError`: `AiConfigurationError`, `AiValidat
 const events = ai.streamAskJson({ message, schema, rules });
 ```
 
-They yield `attempt`, `failure`, `repair`, `fallback`, `success`, and `exhausted`. A thin route can turn the generator into SSE:
+They yield `attempt`, `failure`, `repair`, `fallback`, `success`, and `exhausted`. A `success` event carries the answer: `text` for `streamAsk`, `value` for `streamAskJson`. The terminal events close the stream.
+
+`POST /api/ai/ask` implements that transport for the app. It validates `{ message, history?, rules?, format?, temperature?, maxTokens? }` with zod, streams SSE, and returns `503` when no provider is configured. `format: "json"` guarantees strict JSON but no domain schema; a product feature should add its own route with a domain schema instead of using this generic endpoint.
 
 ```ts
 import { createAiEventStream, getAiModule } from '$lib/server/common/ai';
 
-export const GET = ({ request }) => {
+export const POST = ({ request }) => {
 	const events = getAiModule().streamAskJson({ message: '…', schema });
 	const body = createAiEventStream(events, { signal: request.signal });
 
@@ -310,7 +312,10 @@ export const GET = ({ request }) => {
 };
 ```
 
-The browser helper is `$lib/ai/events` (`watchAiEvents(url, { onEvent })`). It closes the `EventSource` on `success` or `exhausted`; the server closes the response on those terminal events.
+The browser helpers live in `$lib/ai/events`:
+
+- `watchAiEvents(url, { onEvent })` uses `EventSource` for GET streams and closes it on `success` or `exhausted`.
+- `requestAiEvents(url, body, { onEvent })` POSTs a JSON body and parses the SSE response with `fetch`, because prompts do not belong in query strings. It also stops after a terminal event. Both return an abortable promise; pass `signal` to cancel.
 
 ### Boundaries
 
@@ -326,9 +331,11 @@ The browser helper is `$lib/ai/events` (`watchAiEvents(url, { onEvent })`). It c
 
 - `pnpm test` runs every `src/**/*.test.ts` with Vitest, including the live integration tests.
 - `pnpm test:unit` skips the `*.integration.test.ts` files.
-- `pnpm test:integration` runs only the live GitHub tests in `*.integration.test.ts`.
+- `pnpm test:integration` runs only the `*.integration.test.ts` files.
 - `pnpm test:watch` keeps Vitest running in watch mode.
-- Integration tests require `GITHUB_TOKEN` and hit the real GitHub API. They verify the actual contract against `osama-mhmd/kickin` (repository, stars, tarball streaming/download) and `sveltejs/svelte` (issue listing, pagination, offset, PR filtering). They are not mocked.
+- User-facing integration tests start a real `node:http` server and drive the route's `POST` handler over an actual socket, including SSE streams. They do not stub SvelteKit.
+- GitHub integration tests require `GITHUB_TOKEN` and hit the real GitHub API. They verify the actual contract against `osama-mhmd/kickin` (repository, stars, tarball streaming/download) and `sveltejs/svelte` (issue listing, pagination, offset, PR filtering). They are not mocked.
+- AI live-provider tests are opt-in: set `AI_INTEGRATION=1` and at least one of `GROQ_API_KEY`, `GEMINI_API_KEY`, or `OPENROUTER_API_KEY`. They verify text, strict JSON, and a terminal `success` event against the real free-tier chain.
 - Unit tests inject a fake `fetch` for edge cases that are hard to trigger against the live API: rate limits, page-boundary pagination, invalid repository references, and overwrite protection.
 - Database module tests focus on service behavior. Repositories are thin and can be covered with integration tests when a database is available.
 
