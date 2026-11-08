@@ -1,6 +1,6 @@
-import type { GitHubClient } from './client';
-import { GitHubValidationError } from './errors';
-import type { GitHubRepository, NormalizedRepositoryRef, RepositoryRef } from './types';
+import type { GitHubClient } from '../client';
+import { GitHubValidationError } from '../errors';
+import type { GitHubRepository, NormalizedRepositoryRef, RepositoryRef } from '../types';
 
 export function normalizeRepositoryRef(ref: RepositoryRef): NormalizedRepositoryRef {
 	if (typeof ref === 'object' && ref !== null) {

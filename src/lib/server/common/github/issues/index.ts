@@ -1,8 +1,8 @@
-import type { GitHubClient } from './client';
-import { parseLinkHeader } from './client';
-import { GitHubValidationError } from './errors';
-import { normalizeRepositoryRef } from './repo';
-import type { GitHubIssue, ListIssuesOptions, RepositoryRef } from './types';
+import type { GitHubClient } from '../client';
+import { parseLinkHeader } from '../client';
+import { GitHubValidationError } from '../errors';
+import { normalizeRepositoryRef } from '../repositories';
+import type { GitHubIssue, ListIssuesOptions, RepositoryRef } from '../types';
 
 const PAGE_SIZE = 100;
 const DEFAULT_LIMIT = 30;

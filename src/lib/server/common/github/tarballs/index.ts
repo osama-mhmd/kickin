@@ -4,16 +4,16 @@ import { basename, dirname, join, sep } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
-import type { GitHubClient } from './client';
-import { GitHubError, GitHubNetworkError, GitHubValidationError } from './errors';
-import { normalizeRepositoryRef } from './repo';
+import type { GitHubClient } from '../client';
+import { GitHubError, GitHubNetworkError, GitHubValidationError } from '../errors';
+import { normalizeRepositoryRef } from '../repositories';
 import type {
 	DownloadTarballOptions,
 	DownloadedTarball,
 	FetchTarballOptions,
 	RepositoryRef,
 	RepositoryTarball
-} from './types';
+} from '../types';
 
 export async function fetchRepositoryTarball(
 	client: GitHubClient,

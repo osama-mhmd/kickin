@@ -1,18 +1,18 @@
-import { config } from '../../config';
+import { config } from '../../../config';
 import {
 	GitHubApiError,
 	GitHubConfigurationError,
 	GitHubError,
 	GitHubNetworkError,
 	GitHubRateLimitError
-} from './errors';
+} from '../errors';
 import type {
 	GitHubClientOptions,
 	GitHubFetch,
 	GitHubJsonResponse,
 	GitHubQuery,
 	GitHubRequestOptions
-} from './types';
+} from '../types';
 
 const DEFAULT_BASE_URL = 'https://api.github.com';
 const DEFAULT_API_VERSION = '2022-11-28';

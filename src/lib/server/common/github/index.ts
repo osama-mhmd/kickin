@@ -1,7 +1,7 @@
 import { GitHubClient } from './client';
-import { getRepository, getRepositoryStars } from './repo';
+import { getRepository, getRepositoryStars } from './repositories';
 import { listIssues } from './issues';
-import { downloadRepositoryTarball, fetchRepositoryTarball } from './tarball';
+import { downloadRepositoryTarball, fetchRepositoryTarball } from './tarballs';
 import type {
 	DownloadTarballOptions,
 	FetchTarballOptions,
@@ -13,9 +13,9 @@ import type {
 export * from './types';
 export * from './errors';
 export { GitHubClient, parseLinkHeader } from './client';
-export { getRepository, getRepositoryStars, normalizeRepositoryRef } from './repo';
+export { getRepository, getRepositoryStars, normalizeRepositoryRef } from './repositories';
 export { listIssues } from './issues';
-export { downloadRepositoryTarball, fetchRepositoryTarball } from './tarball';
+export { downloadRepositoryTarball, fetchRepositoryTarball } from './tarballs';
 
 export function createGitHubModule(options: GitHubClientOptions = {}) {
 	const client = new GitHubClient(options);

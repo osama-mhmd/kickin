@@ -7,7 +7,7 @@ KickIn has two kinds of modules. They look similar on disk, but they have differ
 | Location        | `src/lib/server/modules/<name>/`                      | `src/lib/server/common/<name>/`                                 |
 | Job             | Own one part of the product's data and business rules | Wrap an external API or a deep, reusable capability             |
 | Talks to        | PostgreSQL through Drizzle                            | GitHub, AI providers, tarballs, ASTs, …                         |
-| Typical files   | `repo.ts`, `service.ts`, `types.ts`, `index.ts`       | `client.ts`, `errors.ts`, `types.ts`, feature files, `index.ts` |
+| Typical files   | `repo.ts`, `service.ts`, `types.ts`, `index.ts`       | `client/`, `errors.ts`, `types.ts`, feature folders, `index.ts` |
 | Called by       | SvelteKit server layer, workers                       | Services, workers                                               |
 | Database access | Yes — only in `repo.ts`                               | No                                                              |
 | Business logic  | Yes — in `service.ts`                                 | No — transport and parsing only                                 |
@@ -70,14 +70,14 @@ A common module wraps an external dependency or a deep technical capability. It 
 ```
 src/lib/server/common/
   github/
-    client.ts     # Transport: auth, headers, timeouts, errors, URL building
+    client/       # Transport: auth, headers, timeouts, errors, URL building
     types.ts      # Public data and option types
     errors.ts     # Typed errors
-    repo.ts       # Repository endpoints
-    issues.ts     # Issue endpoints
-    tarball.ts    # Tarball streaming and download
+    repositories/ # Repository endpoints
+    issues/       # Issue endpoints
+    tarballs/     # Tarball streaming and download
+    testing/      # Shared test fixtures
     index.ts      # Public API + factory
-    *.test.ts     # No-network tests with an injected fetch
 ```
 
 ### Rules
@@ -94,13 +94,13 @@ src/lib/server/common/
 
 ### Adding to the GitHub module
 
-The GitHub module is the reference implementation for common modules. Extend it by adding a feature file, not by patching HTTP logic into an existing one:
+The GitHub module is the reference implementation for common modules. Extend it by adding a feature folder, not by patching HTTP logic into an existing one:
 
-1. Add a file such as `comments.ts` that takes a `GitHubClient` as its first argument.
+1. Add a folder such as `comments/` with an `index.ts` that takes a `GitHubClient` as its first argument.
 2. Call `client.requestJson` for JSON endpoints or `client.request` for streams and binary responses.
 3. Add the data and option types to `types.ts`.
-4. Re-export the function from `index.ts` and add it to the matching namespace in `createGitHubModule`.
-5. Add a no-network test using an injected `fetch`.
+4. Re-export the function from the root `index.ts` and add it to the matching namespace in `createGitHubModule`.
+5. Add a no-network test next to the feature using an injected `fetch`.
 6. Document the new function here.
 
 The client exposes the lower-level surface on purpose: `request`, `requestJson`, `requestJsonWithMeta`, `parseLinkHeader`, and the normalized repository reference helper. Reuse them instead of reimplementing auth, pagination, or error handling.
