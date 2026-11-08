@@ -79,6 +79,7 @@ Details live in [`docs/`](docs/).
 | [`docs/architecture.md`](docs/architecture.md)         | Layers, folder layout, data model, end-to-end flow       |
 | [`docs/modules.md`](docs/modules.md)                   | Database vs common modules, rules, and the GitHub module |
 | [`docs/queues.md`](docs/queues.md)                     | The two queues, workers, retries, rate limiting          |
+| [`docs/ast-analyzer.md`](docs/ast-analyzer.md)         | Tree-sitter parsing, safe tarball extraction, AST JSON   |
 | [`docs/repo-computation.md`](docs/repo-computation.md) | Tarball download and hierarchy extraction                |
 | [`docs/ai-analysis.md`](docs/ai-analysis.md)           | Prompt contract, strict JSON schema, anti-optimism rules |
 | [`docs/free-models.md`](docs/free-models.md)           | Free model providers, limits, fallback strategy          |

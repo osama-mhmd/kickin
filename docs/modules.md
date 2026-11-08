@@ -218,6 +218,25 @@ try {
 
 ---
 
+## AST analyzer
+
+The AST analyzer common module lives at `src/lib/server/common/ast-analyzer`. It parses source files with tree-sitter and returns one bounded JSON compilation, and it reads GitHub-style tarballs into a filtered source-file list. Full details, the language table, output schema, and limits are in [`ast-analyzer.md`](ast-analyzer.md).
+
+```ts
+import { getAstAnalyzer } from '$lib/server/common/ast-analyzer';
+
+const analyzer = getAstAnalyzer();
+const analysis = await analyzer.analyzeTarball(tarballPath, {
+	analysis: { metadata: { repository: 'owner/repo', commitSha } }
+});
+
+await repoComputations.upsert(analysis.compilation);
+```
+
+The module never touches Postgres, queues, or SvelteKit. A database module's service owns persistence and decides which options to use. Workers can import it directly.
+
+---
+
 ## Tests
 
 - `pnpm test` runs every `src/**/*.test.ts` with Vitest, including the live integration tests.

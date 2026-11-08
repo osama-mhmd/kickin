@@ -70,6 +70,7 @@ Ask, or leave a `TODO(question):` comment, rather than inventing product behavio
 - `docs/architecture.md`: layers, folder layout, data model, full flow
 - `docs/modules.md`: database vs common modules, rules, and the GitHub module
 - `docs/queues.md`: queues, workers, retries, rate limits
+- `docs/ast-analyzer.md`: grammars, safe tarball reading, AST JSON, limits
 - `docs/repo-computation.md`: tarball + hierarchy extraction
 - `docs/ai-analysis.md`: prompt contract, JSON schema, anti-optimism
 - `docs/free-models.md`: providers, limits, fallbacks
